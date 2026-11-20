@@ -8,7 +8,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from decrypt import decode          # noqa: E402
-from encrypt_py3 import make_secret  # noqa: E402
+from encrypt_py3 import make_secret, STEPS  # noqa: E402
 
 
 class TestDecrypt(unittest.TestCase):
@@ -18,6 +18,17 @@ class TestDecrypt(unittest.TestCase):
             plaintext, steps = decode(f.read())
         self.assertEqual(plaintext, 'Why do elephants have big ears?')
         self.assertEqual(len(steps) - 1, 67)
+
+    def test_reencode_matches_intercepted(self):
+        # Re-apply the recovered steps to the recovered secret.
+        # If we rebuild the intercepted file exactly, the decode is proven.
+        with open(os.path.join(ROOT, 'intercepted.txt')) as f:
+            original = f.read().strip()
+        plaintext, steps = decode(original)
+        a = '2' + STEPS[1](plaintext)
+        for digit in reversed(steps[:-1]):
+            a = digit + STEPS[int(digit) - 1](a)
+        self.assertEqual(a, original)
 
     def test_round_trip(self):
         rng = random.Random(42)
