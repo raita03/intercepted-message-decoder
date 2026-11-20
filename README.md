@@ -14,7 +14,7 @@ We were given `encryptme.py`, the program believed to have encoded an intercepte
 | `intercepted.txt` | The intercepted message, 35,138 characters |
 | `decrypt.py` | Our decoder (Python 3) |
 | `encrypt_py3.py` | A Python 3 port of the encoder, used only by the tests |
-| `tests/test_decrypt.py` | Checks the decoded message and runs encode/decode round trips |
+| `tests/test_decrypt.py` | Three tests: the decoded message, an exact rebuild of `intercepted.txt` from it, and encode/decode round trips |
 
 ## How to run
 
@@ -31,7 +31,7 @@ Layers peeled: 68 | count = 67
 Secret: Why do elephants have big ears?
 ```
 
-Run the tests:
+Run the tests (all 3 should pass):
 
 ```
 python3 -m unittest discover tests
@@ -50,6 +50,10 @@ The encoder Base64-encodes the secret and puts `2` in front. Then it loops `coun
 So the first character of the output always names the last step used. Our decoder reads that digit, strips it, undoes the step and repeats. It stops after a Base64 decode that leaves no 1, 2 or 3 at the front, because that layer is the original `2` + Base64.
 
 One limit: if a secret itself started with 1, 2 or 3, this stop rule would end too late. It doesn't affect this message.
+
+## Verification
+
+We re-encoded the recovered secret using the 68 recovered steps in reverse. The output matches `intercepted.txt` exactly, all 35,138 characters. `test_reencode_matches_intercepted` checks this.
 
 ## Why the scheme is weak
 
